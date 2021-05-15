@@ -1,110 +1,83 @@
 import '../../assets/css/style.css';
+
+import { defer, from, generate, iif, interval, of, range, timer } from "rxjs";
 import { terminalLog } from "../../utils/log-in-terminal";
-import { fromEvent, interval, Observable, Subscriber, Subscription } from "rxjs";
-import { pluck } from "rxjs/operators";
+import { filter, map, skip, take, tap } from "rxjs/operators";
 
-// const sequence = new Promise<number>((res) => {
-//     let count = 1;
-//     setInterval(() => {
-//         res(count++);
-//     }, 1000)
+// of(1, 2, 3, 4)
+//     .subscribe((v) => terminalLog(`Of => ${v}`));
+//
+//
+// from([
+//     1, 2, 3, 4
+// ])
+//     .subscribe((v) => terminalLog(`from => ${v}`));
+
+
+// timer(5000, 1000)
+//     .subscribe((v) => terminalLog(`timer => ${v}`));
+
+
+// const random = Math.round(Math.random() * 10);
+//
+// console.log(random);
+
+// iif(() => {
+//     return random > 5;
+// }, of('First sequence'), of('Second sequence'))
+//     .subscribe((v) => terminalLog(`iif => ${v}`));
+
+// defer(() => {
+//     return random > 5
+//         ? random >= 8
+//             ? of('First sequence')
+//             : of('Second sequence')
+//
+//         : of('Third sequence')
 // })
-//
-// sequence.then((v) => terminalLog(v));
-// sequence.then((v) => terminalLog(v));
+//     .subscribe((v) => terminalLog(`defer => ${v}`));
 
-// const sequence = function* iteratorFn() {
-//     let count = 1;
-//     while (true) {
-//         yield count++;
-//     }
-// }();
-//
-// console.log(sequence.next().value);
-// console.log(sequence.next().value);
-// console.log(sequence.next().value);
-// console.log(sequence.next().value);
-// console.log(sequence.next().value);
-// console.log(sequence.next().value);
-// console.log(sequence.next().value);
-// interval(1000)
-//     .subscribe((v) => terminalLog(v));
-// let count = 1;
-//
-// const sequence$ = new Observable((subscriber: Subscriber<number>) => {
-//     console.log('Start');
-//     const intId = setInterval(() => {
-//         // if (count % 5 === 0) {
-//         //     subscriber.complete();
-//         //     return;
-//         // }
-//         subscriber.next(count++);
-//     }, 1000)
-//
-//     return () => {
-//         clearInterval(intId);
-//         terminalLog('CB');
-//     }
-// });
-//
-//
-// const sub: Subscription = sequence$.subscribe({
-//     next: (v) => terminalLog(`Sub 1 ===> ${v}`),
-//     complete: () => {
-//         terminalLog('complete')
-//     }
-// });
-//
-// setTimeout(() => {
-//     // sub.unsubscribe();
-//     sequence$.subscribe({
-//         next: (v) => terminalLog(`Sub 2 ===> ${v}`)
-//     });
-// }, 3000)
+// range(2, 5)
+//     .subscribe((v) => terminalLog(`range => ${v}`));
 
-
-const socket: WebSocket = new WebSocket('wss://echo.websocket.org');
-
-// const source$ = new Observable((subscriber) => {
-//     function listener(e: Event) {
-//         subscriber.next(e);
-//     }
-//
-//     socket.addEventListener('message', listener);
-//
-//     return () => {
-//         socket.removeEventListener('message', listener)
-//     }
+// generate({
+//     initialState: 1,
+//     condition: (v) => v < 4,
+//     iterate: (v) => v + 0.5
 // })
+//     .subscribe((v) => terminalLog(`generate => ${v}`));
 
 
-const source$ = fromEvent(socket, 'message')
+const sequence1$ = interval(1000);
 
 
-socket.addEventListener('open', main)
+/*
+sequence1$: ---0---1---2---3---4---5---6---7---8---9---10--
+     tap((v) => {
+        console.log(v)
+        return 1;
+     }),
+            ---0---1---2---3---4---5---6---7---8-------10--
+     filter((v)=>x%2 === 0)
+            ---0-------2-------4-------6-------8-------10--
+     map((x)=>v*2)
+            ---0-------4-------8-------12-------16-------20--
+     skip(2)
+            -------------------8-------12-------16-------20--
+     take(3)
+sequence2$: -------------------8-------12-------16|
+ */
 
-function main() {
-    let count = 0;
-    const intervalId = setInterval(() => {
-        socket.send((count++).toString())
-    }, 1000);
-
-
-    const sub = source$
-        .pipe(pluck('data'))
-        .subscribe((message) => {
-            console.log(`Sub1 => `, message);
-        })
-
-    setTimeout(()=>{
-        sub.unsubscribe();
-    }, 5000)
-
-    setTimeout(() => {
-        source$
-            .pipe(pluck('data'))
-            .subscribe((message) => {
-                console.log(`Sub2 => `, message);
-            })
-    }, 7000)
-}
+const sequence2$ = sequence1$.pipe(
+    tap((v) => {
+        console.log(v)
+        return 1;
+    }),
+    filter((v) => v % 2 === 0),
+    map((x) => x * 2),
+    skip(2),
+    take(3)
+)
+    .subscribe((v) => {
+        terminalLog(v)
+    })
