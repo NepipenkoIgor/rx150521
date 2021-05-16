@@ -1,6 +1,6 @@
-import { fromEvent, Observable } from "rxjs";
+import { EMPTY, fromEvent, Observable } from "rxjs";
 import {
-    bufferCount,
+    bufferCount, catchError,
     concatAll,
     debounceTime,
     distinctUntilChanged,
@@ -51,7 +51,12 @@ export function request(source$: Observable<AjaxResponse<IResult>>): Observable<
             reduce((resultStr: string, htmlStrs: string[]) => {
                 return resultStr += createRow(htmlStrs)
             }, ''),
-            map((htmlStr: string) => htmlStr.trim().replace(/\s+(<)/g, '<'))
+            map((htmlStr: string) => htmlStr.trim().replace(/\s+(<)/g, '<')),
+            catchError((err, obs) => {
+                console.log(err);
+                return EMPTY// of('N') //
+            })
+
         )
 }
 
